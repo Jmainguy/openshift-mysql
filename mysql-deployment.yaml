@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+        app: mysql
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_DATABASE
+          value: ara
+        - name: MYSQL_PASSWORD
+          value: password
+        - name: MYSQL_USER
+          value: ara
+        - name: MYSQL_MAX_ALLOWED_PACKET
+          value: "500M"
+        - name: MYSQL_MAX_CONNECTIONS
+          value: "500"
+        - name: MYSQL_AIO
+          value: "0"
+        image: centos/mysql-57-centos7
+        imagePullPolicy: Always
+        name: mysql
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+        resources:
+            limits:
+                cpu: "4"
+                memory: "4Gi"
+            requests:
+                cpu: "1"
+                memory: "2Gi"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+          - mountPath: /var/lib/mysql/data
+            name: mysql-data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: mysql-data
